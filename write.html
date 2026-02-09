@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Write Diary</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header>
+    <h1>✍️ Write Your Diary</h1>
+</header>
+
+<nav>
+    <a href="index.html">Home</a>
+    <a href="write.html">Write Diary</a>
+    <a href="entries.html">My Entries</a>
+    <a href="about.html">About</a>
+</nav>
+
+<div class="content">
+    <h2>New Diary Entry</h2>
+
+    <input type="date" id="date"><br><br>
+
+    <input type="text" id="title" placeholder="Diary Title"><br><br>
+
+    <textarea id="content" rows="8" cols="40" placeholder="Write your thoughts here..."></textarea><br><br>
+
+    <button onclick="saveDiary()">Save Entry</button>
+</div>
+
+<script src="script.js"></script>
+
+</body>
+</html>
