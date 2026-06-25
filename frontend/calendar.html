@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Calendar - Personal Diary</title>
+    <meta name="description" content="View your diary entries on a beautiful monthly calendar. Click any highlighted date to read your memories.">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<header>
+    <h1>📅 Diary Calendar</h1>
+</header>
+
+<nav>
+    <a href="index.html">Home</a>
+    <a href="write.html">Write Diary</a>
+    <a href="entries.html">My Entries</a>
+    <a href="calendar.html">Calendar</a>
+    <a href="about.html">About</a>
+    <button id="themeToggle" onclick="toggleTheme()" class="theme-btn">🌙 Dark Mode</button>
+</nav>
+
+<div class="content">
+    <!-- ── Calendar Widget ───────────────────────────────── -->
+    <div class="calendar-wrapper">
+
+        <!-- Month navigation header -->
+        <div class="calendar-nav">
+            <button class="cal-nav-btn" id="prevMonth" onclick="changeMonth(-1)" aria-label="Previous month">&#8592;</button>
+            <h2 class="cal-month-title" id="calMonthTitle">June 2026</h2>
+            <button class="cal-nav-btn" id="nextMonth" onclick="changeMonth(1)" aria-label="Next month">&#8594;</button>
+        </div>
+
+        <!-- Day-of-week header row -->
+        <div class="calendar-grid" id="calendarGrid">
+            <!-- Filled by JavaScript -->
+        </div>
+
+        <!-- Legend -->
+        <div class="cal-legend">
+            <span class="legend-dot dot-today"></span><span>Today</span>
+            <span class="legend-dot dot-entry"></span><span>Has entry</span>
+            <span class="legend-dot dot-selected"></span><span>Selected</span>
+        </div>
+    </div>
+
+    <!-- ── Entries panel shown after clicking a date ───── -->
+    <div class="cal-entries-panel" id="calEntriesPanel">
+        <div class="empty-state" id="calEmptyHint">
+            <div class="empty-icon">👆</div>
+            <h3>Select a date</h3>
+            <p>Click any date on the calendar above to view diary entries written on that day.</p>
+        </div>
+    </div>
+</div>
+
+<footer>
+    <p><b>Personal Diary</b></p>
+</footer>
+
+<script src="js/auth.js"></script>
+<script src="js/script.js"></script>
+</body>
+</html>

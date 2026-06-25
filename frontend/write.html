@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Write Entry - Personal Diary</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<header>
+    <h1>✍️ Write Your Diary</h1>
+</header>
+
+<nav>
+    <a href="index.html">Home</a>
+    <a href="write.html">Write Diary</a>
+    <a href="entries.html">My Entries</a>
+    <a href="calendar.html">Calendar</a>
+    <a href="about.html">About</a>
+    <button id="themeToggle" onclick="toggleTheme()" class="theme-btn">🌙 Dark Mode</button>
+</nav>
+
+<div class="content">
+    <h2>New Diary Entry</h2>
+
+    <input type="date" id="date"><br><br>
+
+    <input type="text" id="title" placeholder="Diary Title"><br><br>
+
+    <div class="mood-selection">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <label>How are you feeling today?</label>
+            <button type="button" class="ai-btn" id="autoMoodBtn" onclick="autoDetectMood()" style="font-size: 0.85em; padding: 4px 8px; border: 1px solid #ccc; border-radius: 4px; background: #f0f0f0; cursor: pointer;">✨ Auto-Detect</button>
+        </div>
+        <div class="mood-options">
+            <button type="button" class="mood-btn" data-mood="Happy" onclick="selectMood('Happy')">
+                <span>😊</span><span>Happy</span>
+            </button>
+            <button type="button" class="mood-btn" data-mood="Sad" onclick="selectMood('Sad')">
+                <span>😢</span><span>Sad</span>
+            </button>
+            <button type="button" class="mood-btn" data-mood="Angry" onclick="selectMood('Angry')">
+                <span>😠</span><span>Angry</span>
+            </button>
+            <button type="button" class="mood-btn" data-mood="Excited" onclick="selectMood('Excited')">
+                <span>🤩</span><span>Excited</span>
+            </button>
+            <button type="button" class="mood-btn" data-mood="Neutral" onclick="selectMood('Neutral')">
+                <span>😐</span><span>Neutral</span>
+            </button>
+        </div>
+        <input type="hidden" id="selectedMood" value="Neutral">
+    </div>
+    <br>
+
+    <textarea id="content" rows="8" cols="40" placeholder="Write your thoughts here..."></textarea><br><br>
+
+    <!-- IMAGE UPLOAD ZONE -->
+    <!-- Clicking the zone or dragging a file onto it triggers the hidden input -->
+    <div class="upload-zone" id="uploadZone"
+         onclick="document.getElementById('imageInput').click()"
+         ondragover="handleDragOver(event)"
+         ondragleave="handleDragLeave(event)"
+         ondrop="handleDrop(event)"
+         role="button"
+         aria-label="Upload an image for your diary entry">
+        <input type="file" id="imageInput" accept="image/*"
+               onchange="handleImageUpload(event)" style="display:none">
+        <div class="upload-icon">🖼️</div>
+        <p class="upload-text">Click or drag &amp; drop an image <span>(Optional)</span></p>
+        <p class="upload-hint">JPG · PNG · GIF · WEBP &nbsp;—&nbsp; Max 3 MB</p>
+    </div>
+
+    <!-- IMAGE PREVIEW (shown after a file is chosen) -->
+    <div class="img-preview-wrapper" id="imgPreviewWrapper">
+        <img id="imgPreview" src="" alt="Selected image preview">
+        <button type="button" class="clear-img-btn"
+                onclick="clearImagePreview()" title="Remove image">✕ Remove</button>
+    </div>
+    <br>
+
+    <div style="display: flex; align-items: center; gap: 15px;">
+        <button onclick="saveDiary()">💾 Save Entry</button>
+        <span id="draftStatus" style="color: #64748b; font-size: 0.9em; font-style: italic;"></span>
+    </div>
+</div>
+
+<footer>
+    <p><b>Personal Diary</b></p>
+</footer>
+
+<script src="js/auth.js"></script>
+<script src="js/ai.js"></script>
+<script src="js/script.js"></script>
+
+</body>
+</html>

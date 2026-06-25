@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Login - Personal Diary</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<header>
+    <h1>🔐 Login to Your Diary</h1>
+</header>
+
+<nav>
+    <a href="index.html">Home</a>
+    <a href="about.html">About</a>
+    <button id="themeToggle" onclick="toggleTheme()" class="theme-btn">🌙 Dark Mode</button>
+</nav>
+
+<div class="content" style="max-width: 400px; margin: 40px auto; text-align: center;">
+    <h2>Welcome Back!</h2>
+    <form id="loginForm" onsubmit="handleLogin(event)" style="display: flex; flex-direction: column; gap: 15px; text-align: left;">
+        <div>
+            <label for="username">Username</label>
+            <input type="text" id="username" required style="width: 100%; padding: 8px; margin-top: 5px;" placeholder="Enter your username">
+        </div>
+        <div>
+            <label for="password">Password</label>
+            <input type="password" id="password" required style="width: 100%; padding: 8px; margin-top: 5px;" placeholder="Enter your password">
+        </div>
+        <button type="submit" id="loginSubmitBtn" style="margin-top: 10px; width: 100%;">Login</button>
+    </form>
+    <div style="margin-top: 20px; display: flex; justify-content: space-between;">
+        <a href="forgot-password.html" style="font-size: 0.9em;">Forgot Password?</a>
+        <span style="font-size: 0.9em;">Don't have an account? <a href="register.html">Register here</a></span>
+    </div>
+</div>
+
+<footer>
+    <p><b>Personal Diary</b></p>
+</footer>
+
+<!-- Include auth logic first -->
+<script src="js/auth.js"></script>
+<!-- Then UI logic -->
+<script src="js/script.js"></script>
+<script>
+    async function handleLogin(event) {
+        event.preventDefault();
+        const user = document.getElementById('username').value.trim();
+        const pass = document.getElementById('password').value;
+        const btn = document.getElementById('loginSubmitBtn');
+        
+        btn.disabled = true;
+        btn.innerText = 'Logging in...';
+
+        try {
+            await Auth.login(user, pass);
+            showToast('Login successful!', 'success');
+            setTimeout(() => {
+                window.location.href = 'entries.html';
+            }, 1000);
+        } catch (err) {
+            showToast(err.message, 'error');
+            btn.disabled = false;
+            btn.innerText = 'Login';
+        }
+    }
+</script>
+</body>
+</html>

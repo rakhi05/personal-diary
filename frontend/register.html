@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Register - Personal Diary</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<header>
+    <h1>📝 Create an Account</h1>
+</header>
+
+<nav>
+    <a href="index.html">Home</a>
+    <a href="about.html">About</a>
+    <button id="themeToggle" onclick="toggleTheme()" class="theme-btn">🌙 Dark Mode</button>
+</nav>
+
+<div class="content" style="max-width: 400px; margin: 40px auto; text-align: center;">
+    <h2>Join Personal Diary</h2>
+    <form id="registerForm" onsubmit="handleRegister(event)" style="display: flex; flex-direction: column; gap: 15px; text-align: left;">
+        <div>
+            <label for="username">Choose a Username</label>
+            <input type="text" id="username" required style="width: 100%; padding: 8px; margin-top: 5px;" placeholder="Username">
+        </div>
+        <div>
+            <label for="password">Create a Password</label>
+            <input type="password" id="password" required style="width: 100%; padding: 8px; margin-top: 5px;" placeholder="Password">
+        </div>
+        <div>
+            <label for="regSecurityQuestion">Security Question</label>
+            <select id="regSecurityQuestion" required style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; font-size: 1rem; margin-top: 5px;">
+                <option value="What was your first pet's name?">What was your first pet's name?</option>
+                <option value="What city were you born in?">What city were you born in?</option>
+                <option value="What is your mother's maiden name?">What is your mother's maiden name?</option>
+                <option value="What is your favorite book?">What is your favorite book?</option>
+            </select>
+        </div>
+        <div>
+            <label for="regSecurityAnswer">Security Answer</label>
+            <input type="text" id="regSecurityAnswer" required style="width: 100%; padding: 8px; margin-top: 5px;" placeholder="Your answer (case-insensitive)">
+        </div>
+        <button type="submit" id="regSubmitBtn" style="margin-top: 10px; width: 100%;">Register</button>
+    </form>
+    <p style="margin-top: 20px;">Already have an account? <a href="login.html">Login here</a></p>
+</div>
+
+<footer>
+    <p><b>Personal Diary</b></p>
+</footer>
+
+<!-- Include auth logic first -->
+<script src="js/auth.js"></script>
+<!-- Then UI logic -->
+<script src="js/script.js"></script>
+<script>
+    async function handleRegister(event) {
+        event.preventDefault();
+        const user = document.getElementById('username').value.trim();
+        const pass = document.getElementById('password').value;
+        const question = document.getElementById('regSecurityQuestion').value;
+        const answer = document.getElementById('regSecurityAnswer').value.trim();
+        const btn = document.getElementById('regSubmitBtn');
+        
+        btn.disabled = true;
+        btn.innerText = 'Registering...';
+
+        try {
+            await Auth.register(user, pass, question, answer);
+            showToast('Registration successful! Please login.', 'success');
+            setTimeout(() => {
+                window.location.href = 'login.html';
+            }, 1500);
+        } catch (err) {
+            showToast(err.message, 'error');
+            btn.disabled = false;
+            btn.innerText = 'Register';
+        }
+    }
+</script>
+</body>
+</html>
