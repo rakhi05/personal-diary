@@ -9,27 +9,37 @@ const path = require('path');
 
 const app = express();
 
+// Ensure uploads directory exists
+const uploadsDir = path.join(__dirname, 'uploads');
+if (!fs.existsSync(uploadsDir)) {
+    fs.mkdirSync(uploadsDir, { recursive: true });
+}
+
 // Middleware
 app.use(cors());
 app.use(express.json({ limit: '10mb' })); // Increase limit for Base64 images
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+app.use('/uploads', express.static(uploadsDir));
 app.use(express.static(path.join(__dirname, '../frontend')));
 
-// MySQL Database Connection
-const db = mysql.createConnection({
+// MySQL Database Connection Pool
+const db = mysql.createPool({
     host: process.env.DB_HOST,
     user: process.env.DB_USER,
     password: process.env.DB_PASSWORD,
-    database: process.env.DB_NAME
+    database: process.env.DB_NAME,
+    waitForConnections: true,
+    connectionLimit: 10,
+    queueLimit: 0
 });
 
-db.connect((err) => {
+// Test database connection on startup
+db.getConnection((err, connection) => {
     if (err) {
-        console.error('Error connecting to MySQL:', err.message);
-        // Note: It's okay if this fails initially if the database hasn't been created yet.
+        console.error('Error connecting to MySQL via connection pool:', err.message);
         return;
     }
-    console.log('Successfully connected to MySQL database.');
+    console.log('Successfully connected to MySQL database (pool active).');
+    connection.release();
 });
 
 // ==========================================
@@ -162,7 +172,7 @@ function saveBase64Image(base64Str) {
     if (!base64Str || !base64Str.startsWith('data:image')) return null;
     try {
         const matches = base64Str.match(/^data:image\/([A-Za-z-+\/]+);base64,(.+)$/);
-        if (matches.length !== 3) return null;
+        if (!matches || matches.length !== 3) return null;
         
         const ext = matches[1] === 'jpeg' ? 'jpg' : matches[1];
         const imageData = Buffer.from(matches[2], 'base64');

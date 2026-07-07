@@ -1,9 +1,30 @@
-/* =============================================================
-   PERSONAL DIARY - script.js
-   Handles: Theme toggle, Mood selection, Save/Load/Delete
-   entries, Search filter, Toast notifications, Custom modal.
-   All data persists in browser localStorage.
-   ============================================================= */
+/* ── DATE NORMALIZATION HELPER ──────────────────────────────── */
+/**
+ * normalizeDate – Normalizes any date string (ISO, timestamp, or YYYY-MM-DD) into 'YYYY-MM-DD'.
+ * @param {string|Date|number} dateVal
+ * @returns {string} 'YYYY-MM-DD'
+ */
+function normalizeDate(dateVal) {
+    if (!dateVal) return '';
+    if (typeof dateVal === 'string') {
+        return dateVal.split('T')[0];
+    }
+    if (dateVal instanceof Date) {
+        const y = dateVal.getFullYear();
+        const m = String(dateVal.getMonth() + 1).padStart(2, '0');
+        const d = String(dateVal.getDate()).padStart(2, '0');
+        return `${y}-${m}-${d}`;
+    }
+    const dObj = new Date(dateVal);
+    if (!isNaN(dObj.getTime())) {
+        const y = dObj.getFullYear();
+        const m = String(dObj.getMonth() + 1).padStart(2, '0');
+        const d = String(dObj.getDate()).padStart(2, '0');
+        return `${y}-${m}-${d}`;
+    }
+    return dateVal;
+}
+
 
 /* ── TOAST NOTIFICATION SYSTEM ─────────────────────────────── */
 /**
@@ -45,31 +66,29 @@ function showToast(message, type = 'success', duration = 3000) {
  * showConfirmModal – replaces browser confirm() with a styled modal.
  * Returns a Promise that resolves to true (confirm) or false (cancel).
  */
-function showConfirmModal() {
+function showConfirmModal(title = 'Delete Entry?', text = 'This diary entry will be permanently removed. This action cannot be undone.', confirmText = 'Yes, Delete', cancelText = 'Cancel', icon = '🗑️') {
     return new Promise((resolve) => {
-        // Create modal if it doesn't exist yet
         let modal = document.getElementById('confirm-modal');
         if (!modal) {
             modal = document.createElement('div');
             modal.id = 'confirm-modal';
-            modal.innerHTML = `
-                <div class="modal-card">
-                    <div class="modal-icon">🗑️</div>
-                    <h3>Delete Entry?</h3>
-                    <p>This diary entry will be permanently removed. This action cannot be undone.</p>
-                    <div class="modal-actions">
-                        <button class="modal-cancel-btn" id="modalCancel">Cancel</button>
-                        <button class="modal-confirm-btn" id="modalConfirm">Yes, Delete</button>
-                    </div>
-                </div>
-            `;
             document.body.appendChild(modal);
         }
 
-        // Open modal
+        modal.innerHTML = `
+            <div class="modal-card">
+                <div class="modal-icon">${icon}</div>
+                <h3>${escapeHtml(title)}</h3>
+                <p>${escapeHtml(text)}</p>
+                <div class="modal-actions">
+                    <button class="modal-cancel-btn" id="modalCancel">${escapeHtml(cancelText)}</button>
+                    <button class="modal-confirm-btn" id="modalConfirm">${escapeHtml(confirmText)}</button>
+                </div>
+            </div>
+        `;
+
         modal.classList.add('open');
 
-        // Handle button clicks
         document.getElementById('modalConfirm').onclick = () => {
             modal.classList.remove('open');
             resolve(true);
@@ -79,7 +98,6 @@ function showConfirmModal() {
             resolve(false);
         };
 
-        // Close on backdrop click
         modal.onclick = (e) => {
             if (e.target === modal) {
                 modal.classList.remove('open');
@@ -139,6 +157,14 @@ function selectMood(mood) {
  * Falls back to 😐 if mood is unrecognised.
  */
 function getMoodEmoji(mood) {
+    const emojis = {
+        Happy: '😊',
+        Sad: '😢',
+        Angry: '😠',
+        Excited: '🤩',
+        Neutral: '😐'
+    };
+    return emojis[mood] || '😐';
 }
 
 /* ── AI FEATURES ────────────────────────────────────────────── */
@@ -349,7 +375,7 @@ async function saveDiary() {
 
     const editingEntryId = sessionStorage.getItem('editingEntryId');
     const method = editingEntryId ? 'PUT' : 'POST';
-    const url = editingEntryId ? `http://localhost:5000/api/entries/${editingEntryId}` : 'http://localhost:5000/api/entries';
+    const url = editingEntryId ? `${API_BASE_URL}/entries/${editingEntryId}` : `${API_BASE_URL}/entries`;
 
     try {
         const token = Auth.getToken();
@@ -374,7 +400,7 @@ async function saveDiary() {
 
         // Delete any active draft
         try {
-            await fetch('http://localhost:5000/api/drafts', {
+            await fetch(`${API_BASE_URL}/drafts`, {
                 method: 'DELETE',
                 headers: { 'Authorization': `Bearer ${token}` }
             });
@@ -457,12 +483,15 @@ async function loadEntries(filterQuery = '') {
 
     try {
         const token = Auth.getToken();
-        const res = await fetch('http://localhost:5000/api/entries', {
+        const res = await fetch(`${API_BASE_URL}/entries`, {
             headers: { 'Authorization': `Bearer ${token}` }
         });
         if (!res.ok) throw new Error('Failed to fetch entries');
         
         const diary = await res.json();
+        
+        // Sync with local storage
+        localStorage.setItem('diaryEntries', JSON.stringify(diary));
         
         // Store in global window variable so other functions (like Edit) can access it
         window.currentDiaryEntries = diary;
@@ -496,17 +525,17 @@ async function loadEntries(filterQuery = '') {
             // In API, image_path replaces imageData
             let imageSrc = entry.image_path || entry.imageData; 
             if (imageSrc && imageSrc.startsWith('/uploads/')) {
-                imageSrc = 'http://localhost:5000' + imageSrc;
+                imageSrc = (typeof SERVER_URL !== 'undefined' ? SERVER_URL : 'http://localhost:5000') + imageSrc;
             }
             const imgHtml  = imageSrc
                 ? `<img class="entry-img" src="${imageSrc}" alt="Diary entry image" loading="lazy">`
                 : '';
             
             const summaryHtml = entry.summary 
-                ? `<div class="entry-summary" style="background: #fdf2f8; padding: 10px; border-radius: 6px; margin: 10px 0; font-style: italic; font-size: 0.9em; border-left: 4px solid #fbcfe8;"><strong>✨ AI Summary:</strong> ${escapeHtml(entry.summary)}</div>`
+                ? `<div class="entry-summary"><strong>✨ AI Summary:</strong> ${escapeHtml(entry.summary)}</div>`
                 : '';
 
-            const dateStr = entry.date;
+            const dateStr = normalizeDate(entry.date);
             const createdTime = new Date(entry.created_at).getTime() || entry.createdAt;
 
             const card = document.createElement('div');
@@ -520,8 +549,8 @@ async function loadEntries(filterQuery = '') {
                 ${imgHtml}
                 ${summaryHtml}
                 <p>${escapeHtml(entry.content)}</p>
-                <div class="card-footer" style="display: flex; gap: 10px;">
-                    <button class="theme-btn" style="background: #3b82f6; color: white;" onclick="editEntry(${entry.id || entry.createdAt})">✏️ Edit</button>
+                <div class="card-footer">
+                    <button class="edit-btn" onclick="editEntry(${entry.id || entry.createdAt})">✏️ Edit</button>
                     <button class="delete-btn" onclick="deleteEntry(${entry.id || entry.createdAt})">🗑️ Delete</button>
                 </div>
             `;
@@ -577,19 +606,24 @@ function filterEntries() {
  * @param {number} id - Unique entry identifier.
  */
 async function deleteEntry(id) {
-    const confirmed = await showConfirmModal();
+    const confirmed = await showConfirmModal('Delete Entry?', 'This diary entry will be permanently removed from the server. This action cannot be undone.');
     if (!confirmed) return;
 
     try {
         const token = Auth.getToken();
-        const res = await fetch(`http://localhost:5000/api/entries/${id}`, {
+        const res = await fetch(`${API_BASE_URL}/entries/${id}`, {
             method: 'DELETE',
             headers: { 'Authorization': `Bearer ${token}` }
         });
 
         if (!res.ok) throw new Error('Failed to delete entry');
         
-        showToast('Entry deleted.', 'success', 2500);
+        showToast('Entry deleted successfully.', 'success', 2500);
+
+        // Remove from local cache as well
+        let diary = JSON.parse(localStorage.getItem('diaryEntries')) || [];
+        diary = diary.filter(e => (e.id || e.createdAt) != id);
+        localStorage.setItem('diaryEntries', JSON.stringify(diary));
 
         // Re-render list, preserving any active search filter
         const query = document.getElementById('searchBar')?.value || '';
@@ -610,6 +644,7 @@ async function deleteEntry(id) {
  */
 window.onload = function () {
     applyTheme();
+    highlightActiveLink();
 
     // ── Entries page
     if (window.location.pathname.includes('entries.html')) {
@@ -624,7 +659,7 @@ window.onload = function () {
             // Edit Mode: Fetch the entry details
             document.querySelector('.content h2').innerText = 'Edit Diary Entry';
             const token = Auth.getToken();
-            fetch('http://localhost:5000/api/entries', {
+            fetch(`${API_BASE_URL}/entries`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             })
             .then(res => res.json())
@@ -633,7 +668,7 @@ window.onload = function () {
                 const entryToEdit = entries.find(e => e.id == editingId || e.createdAt == editingId);
                 if (entryToEdit) {
                     // Truncate timestamp part of date if needed to match yyyy-mm-dd
-                    const dateVal = entryToEdit.date.split('T')[0];
+                    const dateVal = normalizeDate(entryToEdit.date);
                     document.getElementById('date').value = dateVal;
                     document.getElementById('date').disabled = true; // Protect original date
                     document.getElementById('title').value = entryToEdit.title;
@@ -643,7 +678,7 @@ window.onload = function () {
                     if (entryToEdit.image_path || entryToEdit.imageData) {
                         let imgData = entryToEdit.image_path || entryToEdit.imageData;
                         if (imgData && imgData.startsWith('/uploads/')) {
-                            imgData = 'http://localhost:5000' + imgData;
+                            imgData = (typeof SERVER_URL !== 'undefined' ? SERVER_URL : 'http://localhost:5000') + imgData;
                         }
                         currentImageData = imgData;
                         const preview = document.getElementById('imgPreview');
@@ -722,7 +757,7 @@ async function saveDraftToAPI() {
 
     try {
         const token = Auth.getToken();
-        const res = await fetch('http://localhost:5000/api/drafts', {
+        const res = await fetch(`${API_BASE_URL}/drafts`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
@@ -742,14 +777,20 @@ async function saveDraftToAPI() {
 async function checkAndRestoreDraft() {
     try {
         const token = Auth.getToken();
-        const res = await fetch('http://localhost:5000/api/drafts', {
+        const res = await fetch(`${API_BASE_URL}/drafts`, {
             headers: { 'Authorization': `Bearer ${token}` }
         });
         const draft = await res.json();
 
         if (draft && (draft.title || draft.content)) {
-            // Found a draft, ask user
-            const wantRestore = confirm('An unsaved draft was found. Would you like to restore it?\nClick OK to Restore, or Cancel to Discard.');
+            // Found a draft, ask user via custom modal
+            const wantRestore = await showConfirmModal(
+                'Restore Unsaved Draft?',
+                'An unsaved draft was found. Would you like to restore it and continue writing?',
+                'Restore Draft',
+                'Discard Draft',
+                '📝'
+            );
             
             if (wantRestore) {
                 if (draft.date) document.getElementById('date').value = draft.date.split('T')[0];
@@ -758,7 +799,7 @@ async function checkAndRestoreDraft() {
                 selectMood(draft.mood || 'Neutral');
             } else {
                 // Discard
-                await fetch('http://localhost:5000/api/drafts', {
+                await fetch(`${API_BASE_URL}/drafts`, {
                     method: 'DELETE',
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
@@ -802,7 +843,7 @@ function getDatesWithEntries() {
     const diary = JSON.parse(localStorage.getItem('diaryEntries')) || [];
     const dates = new Set();
     diary.forEach(entry => {
-        if (entry.date) dates.add(entry.date);
+        if (entry.date) dates.add(normalizeDate(entry.date));
     });
     return dates;
 }
@@ -943,8 +984,12 @@ function showEntriesForDate(dateStr) {
     if (!panel) return;
 
     const diary   = JSON.parse(localStorage.getItem('diaryEntries')) || [];
-    const matches = diary.filter(e => e.date === dateStr)
-                         .sort((a, b) => b.createdAt - a.createdAt);
+    const matches = diary.filter(e => normalizeDate(e.date) === dateStr)
+                         .sort((a, b) => {
+                             const timeA = new Date(a.created_at).getTime() || a.createdAt;
+                             const timeB = new Date(b.created_at).getTime() || b.createdAt;
+                             return timeB - timeA;
+                         });
 
     panel.innerHTML = '';
 
@@ -978,12 +1023,21 @@ function showEntriesForDate(dateStr) {
     matches.forEach(entry => {
         const mood    = entry.mood || 'Neutral';
         const emoji   = getMoodEmoji(mood);
-        const imgHtml = entry.imageData
-            ? `<img class="entry-img" src="${entry.imageData}" alt="Diary entry image" loading="lazy">`
+        
+        let imageSrc = entry.image_path || entry.imageData;
+        if (imageSrc && imageSrc.startsWith('/uploads/')) {
+            imageSrc = (typeof SERVER_URL !== 'undefined' ? SERVER_URL : 'http://localhost:5000') + imageSrc;
+        }
+        
+        const imgHtml = imageSrc
+            ? `<img class="entry-img" src="${imageSrc}" alt="Diary entry image" loading="lazy">`
             : '';
         const summaryHtml = entry.summary 
-            ? `<div class="entry-summary" style="background: #fdf2f8; padding: 10px; border-radius: 6px; margin: 10px 0; font-style: italic; font-size: 0.9em; border-left: 4px solid #fbcfe8;"><strong>✨ AI Summary:</strong> ${escapeHtml(entry.summary)}</div>`
+            ? `<div class="entry-summary"><strong>✨ AI Summary:</strong> ${escapeHtml(entry.summary)}</div>`
             : '';
+
+        const entryId = entry.id || entry.createdAt;
+        const createdTime = new Date(entry.created_at).getTime() || entry.createdAt;
 
         const card = document.createElement('div');
         card.className = 'entry-card';
@@ -992,12 +1046,12 @@ function showEntriesForDate(dateStr) {
                 <h3>${escapeHtml(entry.title)}</h3>
                 <span class="mood-badge mood-${mood}">${emoji} ${mood}</span>
             </div>
-            <small>🕒 ${formatTime(entry.createdAt)}</small>
+            <small>🕒 ${formatTime(createdTime)}</small>
             ${imgHtml}
             ${summaryHtml}
             <p>${escapeHtml(entry.content)}</p>
             <div class="card-footer">
-                <button class="delete-btn" onclick="deleteCalEntry(${entry.createdAt}, '${dateStr}')">🗑️ Delete</button>
+                <button class="delete-btn" onclick="deleteCalEntry(${entryId}, '${dateStr}')">🗑️ Delete</button>
             </div>
         `;
         panel.appendChild(card);
@@ -1011,28 +1065,225 @@ function showEntriesForDate(dateStr) {
  * @param {number} createdAt  Unique entry ID.
  * @param {string} dateStr    The date being viewed ('YYYY-MM-DD').
  */
-async function deleteCalEntry(createdAt, dateStr) {
-    const confirmed = await showConfirmModal();
+async function deleteCalEntry(id, dateStr) {
+    const confirmed = await showConfirmModal('Delete Entry?', 'This diary entry will be permanently removed. This action cannot be undone.');
     if (!confirmed) return;
 
-    let diary = JSON.parse(localStorage.getItem('diaryEntries')) || [];
-    diary = diary.filter(e => e.createdAt !== createdAt);
-    localStorage.setItem('diaryEntries', JSON.stringify(diary));
+    try {
+        const token = Auth.getToken();
+        if (token) {
+            const res = await fetch(`${API_BASE_URL}/entries/${id}`, {
+                method: 'DELETE',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
 
-    showToast('Entry deleted.', 'success', 2500);
+            if (!res.ok) {
+                const data = await res.json();
+                throw new Error(data.error || 'Failed to delete entry from database');
+            }
+        }
+        
+        showToast('Entry deleted successfully.', 'success', 2500);
 
-    // Re-render calendar so the dot is removed if no entries remain on that date
-    renderCalendar();
-    showEntriesForDate(dateStr);
+        // Update local cache
+        let diary = JSON.parse(localStorage.getItem('diaryEntries')) || [];
+        diary = diary.filter(e => (e.id || e.createdAt) != id);
+        localStorage.setItem('diaryEntries', JSON.stringify(diary));
+
+        // Re-render calendar so the dot is removed if no entries remain on that date
+        renderCalendar();
+        showEntriesForDate(dateStr);
+    } catch (err) {
+        showToast(err.message, 'error');
+    }
 }
 
 /**
  * initCalendar – called on window.onload for calendar.html.
  * Sets calState to the current month and draws the initial grid.
  */
-function initCalendar() {
+async function initCalendar() {
     const now      = new Date();
     calState.year  = now.getFullYear();
     calState.month = now.getMonth();
+
+    // Fetch latest entries from API to keep the calendar in sync
+    try {
+        const token = Auth.getToken();
+        if (token) {
+            const res = await fetch(`${API_BASE_URL}/entries`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (res.ok) {
+                const diary = await res.json();
+                localStorage.setItem('diaryEntries', JSON.stringify(diary));
+            }
+        }
+    } catch (err) {
+        console.error("Offline or backend unavailable. Using cached calendar entries.", err);
+    }
+
     renderCalendar();
+}
+
+/**
+ * toggleMobileNav - Toggles the responsive navigation links drawer on mobile.
+ */
+function toggleMobileNav() {
+    const navLinks = document.getElementById('navLinks');
+    if (navLinks) {
+        navLinks.classList.toggle('open');
+    }
+}
+
+/**
+ * highlightActiveLink - Marks the current active navigation item in the header.
+ */
+function highlightActiveLink() {
+    const path = window.location.pathname;
+    document.querySelectorAll('.nav-links a, nav a').forEach(a => {
+        const href = a.getAttribute('href');
+        if (!href) return;
+        
+        // Match '/' or '/index.html' with 'index.html'
+        const isIndex = href === 'index.html' && (path.endsWith('/') || path.endsWith('/index.html'));
+        const isCurrent = path.includes(href);
+        
+        if (isIndex || isCurrent) {
+            a.classList.add('active');
+        } else {
+            a.classList.remove('active');
+        }
+    });
+}
+
+/* ── EXPORT & IMPORT BACKUP SYSTEM ───────────────────────── */
+/**
+ * exportEntries - Downloads all user diary entries as a JSON backup file.
+ */
+async function exportEntries() {
+    try {
+        const token = Auth.getToken();
+        if (!token) throw new Error('You must be logged in to export entries.');
+        
+        showToast('Preparing backup file...', 'success', 1500);
+        
+        const res = await fetch(`${API_BASE_URL}/entries`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (!res.ok) throw new Error('Failed to fetch entries for export');
+        
+        const entries = await res.json();
+        
+        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(entries, null, 2));
+        const downloadAnchor = document.createElement('a');
+        
+        const today = new Date();
+        const dateStr = today.toISOString().split('T')[0];
+        
+        downloadAnchor.setAttribute("href", dataStr);
+        downloadAnchor.setAttribute("download", `memoir-backup-${dateStr}.json`);
+        document.body.appendChild(downloadAnchor);
+        downloadAnchor.click();
+        downloadAnchor.remove();
+        
+        showToast('Backup file downloaded! 📥', 'success');
+    } catch (err) {
+        showToast(err.message, 'error');
+    }
+}
+
+/**
+ * triggerImportFile - Clicks the hidden file input for importing entries.
+ */
+function triggerImportFile() {
+    document.getElementById('importFileInput')?.click();
+}
+
+/**
+ * importEntries - Parses an uploaded JSON file and uploads entries to the database.
+ */
+async function importEntries(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = async function (e) {
+        try {
+            const entries = JSON.parse(e.target.result);
+            if (!Array.isArray(entries)) {
+                throw new Error('Invalid backup file. Must be a JSON array of entries.');
+            }
+
+            if (entries.length === 0) {
+                showToast('The backup file contains no entries.', 'error');
+                event.target.value = '';
+                return;
+            }
+
+            const confirmed = await showConfirmModal(
+                'Import Entries?',
+                `This will import ${entries.length} entries into your diary. Duplicate dates may occur if they match existing entries.`,
+                'Yes, Import',
+                'Cancel',
+                '📤'
+            );
+
+            if (!confirmed) {
+                event.target.value = ''; // Reset input
+                return;
+            }
+
+            const token = Auth.getToken();
+            let successCount = 0;
+            let failCount = 0;
+
+            showToast('Importing entries, please wait...', 'success', 2000);
+
+            for (const entry of entries) {
+                const normalizedEntry = {
+                    date: entry.date ? normalizeDate(entry.date) : new Date().toISOString().split('T')[0],
+                    title: entry.title || 'Untitled Entry',
+                    content: entry.content || '',
+                    mood: entry.mood || 'Neutral',
+                    summary: entry.summary || '',
+                    imageData: entry.image_path || entry.imageData || null
+                };
+
+                try {
+                    const res = await fetch(`${API_BASE_URL}/entries`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                        },
+                        body: JSON.stringify(normalizedEntry)
+                    });
+                    if (res.ok) {
+                        successCount++;
+                    } else {
+                        failCount++;
+                    }
+                } catch (err) {
+                    failCount++;
+                }
+            }
+
+            showToast(`Import completed! Success: ${successCount}, Failed: ${failCount}`, successCount > 0 ? 'success' : 'error', 4000);
+            
+            // Reset the input
+            event.target.value = '';
+
+            // Reload list or calendar depending on page
+            if (window.location.pathname.includes('entries.html')) {
+                loadEntries();
+            } else if (window.location.pathname.includes('calendar.html')) {
+                initCalendar();
+            }
+        } catch (err) {
+            showToast(`Import failed: ${err.message}`, 'error');
+            event.target.value = '';
+        }
+    };
+    reader.readAsText(file);
 }

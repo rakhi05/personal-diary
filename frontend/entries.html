@@ -1,36 +1,51 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>My Entries - Personal Diary</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Entries - Memoir</title>
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
 
-<header>
-    <h1>📖 My Diary Entries</h1>
+<header class="app-header">
+    <div class="header-container">
+        <a href="index.html" class="logo">
+            <span class="logo-emoji">📔</span>
+            <span class="logo-text">Memoir</span>
+        </a>
+        <button class="mobile-nav-toggle" aria-label="Toggle menu" onclick="toggleMobileNav()">☰</button>
+        <nav class="nav-links" id="navLinks">
+            <a href="index.html">Home</a>
+            <a href="write.html">Write Diary</a>
+            <a href="entries.html">My Entries</a>
+            <a href="calendar.html">Calendar</a>
+            <a href="about.html">About</a>
+        </nav>
+        <div class="nav-actions">
+            <button id="themeToggle" onclick="toggleTheme()" class="theme-btn">🌙 Dark Mode</button>
+        </div>
+    </div>
 </header>
 
-<nav>
-    <a href="index.html">Home</a>
-    <a href="write.html">Write Diary</a>
-    <a href="entries.html">My Entries</a>
-    <a href="calendar.html">Calendar</a>
-    <a href="about.html">About</a>
-    <button id="themeToggle" onclick="toggleTheme()" class="theme-btn">🌙 Dark Mode</button>
-</nav>
-
 <div class="content">
-    <h2>Saved Entries</h2>
-
-    <div class="search-container">
-        <input type="text" id="searchBar" placeholder="Search entries by title or keyword..." oninput="filterEntries()">
+    <div class="dashboard-actions">
+        <h2 style="margin: 0; font-size: 24px;">Saved Entries</h2>
+        <div class="search-container">
+            <input type="text" id="searchBar" placeholder="Search entries by title or content..." oninput="filterEntries()">
+        </div>
+        <div class="backup-actions">
+            <button onclick="exportEntries()" class="btn btn-secondary" title="Export Backup to JSON File">📥 Export Backup</button>
+            <button onclick="triggerImportFile()" class="btn btn-secondary" title="Import Backup from JSON File">📤 Import Backup</button>
+            <input type="file" id="importFileInput" accept="application/json" onchange="importEntries(event)" style="display: none;">
+        </div>
     </div>
 
     <div id="entriesList"></div>
 </div>
 
 <footer>
-    <p><b>Personal Diary</b></p>
+    <p><b>Memoir &copy; 2026</b></p>
 </footer>
 
 <script src="js/auth.js"></script>

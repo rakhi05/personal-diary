@@ -1,37 +1,74 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Home - Personal Diary</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home - Memoir</title>
     <link rel="stylesheet" href="css/style.css">
 </head>
-
 <body>
 
-<header>
-    <h1>📖 My Personal Diary</h1>
+<header class="app-header">
+    <div class="header-container">
+        <a href="index.html" class="logo">
+            <span class="logo-emoji">📔</span>
+            <span class="logo-text">Memoir</span>
+        </a>
+        <button class="mobile-nav-toggle" aria-label="Toggle menu" onclick="toggleMobileNav()">☰</button>
+        <nav class="nav-links" id="navLinks">
+            <a href="index.html">Home</a>
+            <a href="write.html">Write Diary</a>
+            <a href="entries.html">My Entries</a>
+            <a href="calendar.html">Calendar</a>
+            <a href="about.html">About</a>
+        </nav>
+        <div class="nav-actions">
+            <button id="themeToggle" onclick="toggleTheme()" class="theme-btn">🌙 Dark Mode</button>
+        </div>
+    </div>
 </header>
 
-<nav>
-    <a href="index.html">Home</a>
-    <a href="write.html">Write Diary</a>
-    <a href="entries.html">My Entries</a>
-    <a href="calendar.html">Calendar</a>
-    <a href="about.html">About</a>
-    <button id="themeToggle" onclick="toggleTheme()" class="theme-btn">🌙 Dark Mode</button>
-</nav>
+<div class="content index-content">
+    <!-- Hero Section -->
+    <section class="hero-section">
+        <h1 class="hero-title">Capture Your Life's Journey with <span class="hero-brand">Memoir</span></h1>
+        <p class="hero-subtitle">A secure, gorgeous, and intelligent space to document your thoughts, track your moods, and cherish your fleeting memories.</p>
+        <div class="hero-buttons">
+            <a href="write.html" class="btn btn-hero btn-primary-gradient">✍️ Start Writing Today</a>
+            <a href="about.html" class="btn btn-hero btn-secondary-outline">Learn More &rarr;</a>
+        </div>
+    </section>
 
-<div class="content">
-    <h2>Why Diary Writing?</h2>
-    <div class="Box">
-        <p>
-            Writing a personal diary is a powerful way to document your life journey, express your inner feelings, and capture fleeting memories.
-            It provides a private, therapeutic space for self-reflection, helping you gain mental clarity and track your personal growth over time.
-        </p>
-    </div>
+    <!-- Features Section -->
+    <section class="features-section">
+        <h2 class="section-title">Designed for Modern Reflection</h2>
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="feature-icon">🛡️</div>
+                <h3>100% Private</h3>
+                <p>Your journals are stored securely. You own your data, always.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">✨</div>
+                <h3>AI-Powered Insights</h3>
+                <p>Auto-detect entry moods and generate summaries instantly using built-in intelligent algorithms.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">📅</div>
+                <h3>Interactive Calendar</h3>
+                <p>Browse your entries through a beautiful interactive monthly view to relive past days.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🖼️</div>
+                <h3>Media Attachments</h3>
+                <p>Enrich your reflections by attaching high-quality visual memories to any journal entry.</p>
+            </div>
+        </div>
+    </section>
 </div>
 
 <footer>
-    <p><b>Personal Diary</b></p>
+    <p><b>Memoir &copy; 2026</b></p>
 </footer>
 
 <script src="js/auth.js"></script>

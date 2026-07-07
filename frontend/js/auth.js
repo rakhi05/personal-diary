@@ -3,7 +3,11 @@
    Handles JWT authentication, login, registration, and route protection.
    ============================================================= */
 
-const API_BASE_URL = 'http://localhost:5000/api';
+const SERVER_URL = window.location.protocol === 'file:'
+    ? 'http://localhost:5000'
+    : window.location.origin;
+
+const API_BASE_URL = `${SERVER_URL}/api`;
 
 class Auth {
     static API_URL = `${API_BASE_URL}/auth`;
@@ -68,6 +72,7 @@ class Auth {
     static logout() {
         localStorage.removeItem('diaryToken');
         localStorage.removeItem('diaryUser');
+        localStorage.removeItem('diaryEntries');
         window.location.href = 'login.html';
     }
 
@@ -76,16 +81,27 @@ class Auth {
      * Should be called on every page load.
      */
     static enforceRouteProtection() {
-        const path = window.location.pathname;
-        const publicPages = ['/login.html', '/register.html', '/forgot-password.html'];
-        const isPublicPage = publicPages.some(p => path.includes(p));
+        const path = window.location.pathname.toLowerCase();
+        
+        // Define public pages
+        const isIndex = path === '/' || path.endsWith('/index.html') || path.endsWith('/');
+        const isAbout = path.endsWith('/about.html');
+        const isLogin = path.endsWith('/login.html');
+        const isRegister = path.endsWith('/register.html');
+        const isForgotPassword = path.endsWith('/forgot-password.html');
+        
+        const isPublicPage = isIndex || isAbout || isLogin || isRegister || isForgotPassword;
 
-        if (!this.isAuthenticated() && !isPublicPage && !path.endsWith('/') && !path.endsWith('/index.html') && !path.includes('about.html')) {
-            // Force login for protected pages (write, entries, calendar)
-            window.location.href = 'login.html';
-        } else if (this.isAuthenticated() && isPublicPage) {
-            // Redirect logged-in users away from login/register pages
-            window.location.href = 'entries.html';
+        if (!this.isAuthenticated()) {
+            if (!isPublicPage) {
+                // Force login for protected pages (write, entries, calendar)
+                window.location.href = 'login.html';
+            }
+        } else {
+            // Redirect logged-in users away from login/register/forgot-password pages
+            if (isLogin || isRegister || isForgotPassword) {
+                window.location.href = 'entries.html';
+            }
         }
     }
 
@@ -98,14 +114,57 @@ class Auth {
         if (!navContainer || !navLinksContainer) return;
 
         if (this.isAuthenticated()) {
-            // If they are logged in and no logout button exists, add it
-            if (!document.getElementById('logoutBtn')) {
-                const logoutBtn = document.createElement('button');
-                logoutBtn.id = 'logoutBtn';
-                logoutBtn.className = 'logout-btn';
-                logoutBtn.innerText = '🚪 Logout';
-                logoutBtn.onclick = () => Auth.logout();
-                navContainer.appendChild(logoutBtn);
+            // Remove legacy logout button if present
+            const legacyLogoutBtn = document.getElementById('logoutBtn');
+            if (legacyLogoutBtn) legacyLogoutBtn.remove();
+
+            // Create profile dropdown menu if not exists
+            if (!document.getElementById('profileMenuContainer')) {
+                const userStr = localStorage.getItem('diaryUser');
+                const user = userStr ? JSON.parse(userStr) : null;
+                const username = user ? user.username : 'User';
+                const initial = username.charAt(0).toUpperCase();
+
+                const menuContainer = document.createElement('div');
+                menuContainer.id = 'profileMenuContainer';
+                menuContainer.className = 'profile-menu-container';
+                menuContainer.innerHTML = `
+                    <button class="profile-btn" id="profileBtn" aria-expanded="false" aria-haspopup="true">
+                        <span class="profile-avatar">${initial}</span>
+                        <span class="profile-username">${username}</span>
+                        <span class="profile-caret">▼</span>
+                    </button>
+                    <div class="profile-dropdown" id="profileDropdown" aria-hidden="true">
+                        <div class="dropdown-header">
+                            <p class="dropdown-user-name">${username}</p>
+                            <p class="dropdown-user-label">Journal Owner</p>
+                        </div>
+                        <div class="dropdown-divider"></div>
+                        <a href="entries.html" class="dropdown-item">📔 My Entries</a>
+                        <a href="write.html" class="dropdown-item">✍️ Write Entry</a>
+                        <a href="calendar.html" class="dropdown-item">📅 Calendar View</a>
+                        <div class="dropdown-divider"></div>
+                        <button id="dropdownLogoutBtn" class="dropdown-item dropdown-logout-btn">🚪 Logout</button>
+                    </div>
+                `;
+                navContainer.appendChild(menuContainer);
+
+                // Attach toggle click handler
+                const profileBtn = menuContainer.querySelector('#profileBtn');
+                const dropdown = menuContainer.querySelector('#profileDropdown');
+                
+                profileBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const isExpanded = profileBtn.getAttribute('aria-expanded') === 'true';
+                    profileBtn.setAttribute('aria-expanded', !isExpanded);
+                    dropdown.classList.toggle('open');
+                    dropdown.setAttribute('aria-hidden', isExpanded);
+                });
+
+                // Attach logout handler
+                menuContainer.querySelector('#dropdownLogoutBtn').addEventListener('click', () => {
+                    Auth.logout();
+                });
             }
             
             // Hide login/register links if they exist
@@ -121,9 +180,9 @@ class Auth {
             });
         } else {
             // User is not logged in
-            // Remove logout button if it exists
-            const logoutBtn = document.getElementById('logoutBtn');
-            if (logoutBtn) logoutBtn.remove();
+            // Remove profile menu if it exists
+            const menuContainer = document.getElementById('profileMenuContainer');
+            if (menuContainer) menuContainer.remove();
 
             // Add Login / Register links if they don't exist
             if (!document.getElementById('loginLink')) {
@@ -207,4 +266,17 @@ Auth.enforceRouteProtection();
 
 document.addEventListener('DOMContentLoaded', () => {
     Auth.updateNavigation();
+});
+
+// Close profile dropdown when clicking outside
+document.addEventListener('click', (e) => {
+    const dropdown = document.getElementById('profileDropdown');
+    const profileBtn = document.getElementById('profileBtn');
+    if (dropdown && dropdown.classList.contains('open')) {
+        if (!dropdown.contains(e.target) && !profileBtn.contains(e.target)) {
+            dropdown.classList.remove('open');
+            profileBtn.setAttribute('aria-expanded', 'false');
+            dropdown.setAttribute('aria-hidden', 'true');
+        }
+    }
 });

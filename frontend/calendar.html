@@ -1,26 +1,37 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <title>Calendar - Personal Diary</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calendar - Memoir</title>
     <meta name="description" content="View your diary entries on a beautiful monthly calendar. Click any highlighted date to read your memories.">
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
 
-<header>
-    <h1>📅 Diary Calendar</h1>
+<header class="app-header">
+    <div class="header-container">
+        <a href="index.html" class="logo">
+            <span class="logo-emoji">📔</span>
+            <span class="logo-text">Memoir</span>
+        </a>
+        <button class="mobile-nav-toggle" aria-label="Toggle menu" onclick="toggleMobileNav()">☰</button>
+        <nav class="nav-links" id="navLinks">
+            <a href="index.html">Home</a>
+            <a href="write.html">Write Diary</a>
+            <a href="entries.html">My Entries</a>
+            <a href="calendar.html">Calendar</a>
+            <a href="about.html">About</a>
+        </nav>
+        <div class="nav-actions">
+            <button id="themeToggle" onclick="toggleTheme()" class="theme-btn">🌙 Dark Mode</button>
+        </div>
+    </div>
 </header>
 
-<nav>
-    <a href="index.html">Home</a>
-    <a href="write.html">Write Diary</a>
-    <a href="entries.html">My Entries</a>
-    <a href="calendar.html">Calendar</a>
-    <a href="about.html">About</a>
-    <button id="themeToggle" onclick="toggleTheme()" class="theme-btn">🌙 Dark Mode</button>
-</nav>
-
 <div class="content">
+    <h2 style="font-size: 24px; margin-bottom: 24px; text-align: center;">Diary Calendar</h2>
+
     <!-- ── Calendar Widget ───────────────────────────────── -->
     <div class="calendar-wrapper">
 
@@ -55,7 +66,7 @@
 </div>
 
 <footer>
-    <p><b>Personal Diary</b></p>
+    <p><b>Memoir &copy; 2026</b></p>
 </footer>
 
 <script src="js/auth.js"></script>

@@ -1,52 +1,68 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Register - Personal Diary</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register - Memoir</title>
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
 
-<header>
-    <h1>📝 Create an Account</h1>
+<header class="app-header">
+    <div class="header-container">
+        <a href="index.html" class="logo">
+            <span class="logo-emoji">📔</span>
+            <span class="logo-text">Memoir</span>
+        </a>
+        <button class="mobile-nav-toggle" aria-label="Toggle menu" onclick="toggleMobileNav()">☰</button>
+        <nav class="nav-links" id="navLinks">
+            <a href="index.html">Home</a>
+            <a href="about.html">About</a>
+        </nav>
+        <div class="nav-actions">
+            <button id="themeToggle" onclick="toggleTheme()" class="theme-btn">🌙 Dark Mode</button>
+        </div>
+    </div>
 </header>
 
-<nav>
-    <a href="index.html">Home</a>
-    <a href="about.html">About</a>
-    <button id="themeToggle" onclick="toggleTheme()" class="theme-btn">🌙 Dark Mode</button>
-</nav>
-
-<div class="content" style="max-width: 400px; margin: 40px auto; text-align: center;">
-    <h2>Join Personal Diary</h2>
-    <form id="registerForm" onsubmit="handleRegister(event)" style="display: flex; flex-direction: column; gap: 15px; text-align: left;">
-        <div>
-            <label for="username">Choose a Username</label>
-            <input type="text" id="username" required style="width: 100%; padding: 8px; margin-top: 5px;" placeholder="Username">
+<div class="content">
+    <div class="auth-card-container">
+        <div class="auth-card">
+            <h2>Create an Account</h2>
+            <p class="subtitle">Join Memoir to start documenting your life journey.</p>
+            <form id="registerForm" onsubmit="handleRegister(event)">
+                <div class="form-group">
+                    <label for="username">Choose a Username</label>
+                    <input type="text" id="username" required placeholder="Username">
+                </div>
+                <div class="form-group">
+                    <label for="password">Create a Password</label>
+                    <input type="password" id="password" required placeholder="Password">
+                </div>
+                <div class="form-group">
+                    <label for="regSecurityQuestion">Security Question</label>
+                    <select id="regSecurityQuestion" required>
+                        <option value="What was your first pet's name?">What was your first pet's name?</option>
+                        <option value="What city were you born in?">What city were you born in?</option>
+                        <option value="What is your mother's maiden name?">What is your mother's maiden name?</option>
+                        <option value="What is your favorite book?">What is your favorite book?</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="regSecurityAnswer">Security Answer</label>
+                    <input type="text" id="regSecurityAnswer" required placeholder="Your answer (case-insensitive)">
+                </div>
+                <button type="submit" id="regSubmitBtn" class="btn btn-full" style="margin-top: 10px;">Register</button>
+            </form>
+            <div class="form-footer" style="justify-content: center; gap: 8px;">
+                <span>Already have an account? <a href="login.html">Login here</a></span>
+            </div>
         </div>
-        <div>
-            <label for="password">Create a Password</label>
-            <input type="password" id="password" required style="width: 100%; padding: 8px; margin-top: 5px;" placeholder="Password">
-        </div>
-        <div>
-            <label for="regSecurityQuestion">Security Question</label>
-            <select id="regSecurityQuestion" required style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; font-size: 1rem; margin-top: 5px;">
-                <option value="What was your first pet's name?">What was your first pet's name?</option>
-                <option value="What city were you born in?">What city were you born in?</option>
-                <option value="What is your mother's maiden name?">What is your mother's maiden name?</option>
-                <option value="What is your favorite book?">What is your favorite book?</option>
-            </select>
-        </div>
-        <div>
-            <label for="regSecurityAnswer">Security Answer</label>
-            <input type="text" id="regSecurityAnswer" required style="width: 100%; padding: 8px; margin-top: 5px;" placeholder="Your answer (case-insensitive)">
-        </div>
-        <button type="submit" id="regSubmitBtn" style="margin-top: 10px; width: 100%;">Register</button>
-    </form>
-    <p style="margin-top: 20px;">Already have an account? <a href="login.html">Login here</a></p>
+    </div>
 </div>
 
 <footer>
-    <p><b>Personal Diary</b></p>
+    <p><b>Memoir &copy; 2026</b></p>
 </footer>
 
 <!-- Include auth logic first -->

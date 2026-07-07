@@ -1,28 +1,37 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>About - Personal Diary</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About - Memoir</title>
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
 
-<header>
-    <h1>ℹ️ About My Diary</h1>
+<header class="app-header">
+    <div class="header-container">
+        <a href="index.html" class="logo">
+            <span class="logo-emoji">📔</span>
+            <span class="logo-text">Memoir</span>
+        </a>
+        <button class="mobile-nav-toggle" aria-label="Toggle menu" onclick="toggleMobileNav()">☰</button>
+        <nav class="nav-links" id="navLinks">
+            <a href="index.html">Home</a>
+            <a href="write.html">Write Diary</a>
+            <a href="entries.html">My Entries</a>
+            <a href="calendar.html">Calendar</a>
+            <a href="about.html">About</a>
+        </nav>
+        <div class="nav-actions">
+            <button id="themeToggle" onclick="toggleTheme()" class="theme-btn">🌙 Dark Mode</button>
+        </div>
+    </div>
 </header>
 
-<nav>
-    <a href="index.html">Home</a>
-    <a href="write.html">Write Diary</a>
-    <a href="entries.html">My Entries</a>
-    <a href="calendar.html">Calendar</a>
-    <a href="about.html">About</a>
-    <button id="themeToggle" onclick="toggleTheme()" class="theme-btn">🌙 Dark Mode</button>
-</nav>
-
 <div class="content">
-    <h2>About Personal Diary</h2>
-    <p>Personal Diary is your private space to document your thoughts, feelings, and experiences.</p>
-    <p>It aims to provide a simple, beautiful, and secure platform for self-expression and reflection.</p>
+    <h2>About Memoir</h2>
+    <p>Memoir is your private, premium space to document your thoughts, feelings, and experiences.</p>
+    <p>It provides a simple, beautiful, and secure platform for self-expression, mindfulness, and reflection.</p>
 
     <div class="Box">
         <h3>Features:</h3>
@@ -38,7 +47,7 @@
 </div>
 
 <footer>
-    <p><b>Personal Diary</b></p>
+    <p><b>Memoir &copy; 2026</b></p>
 </footer>
 
 <script src="js/auth.js"></script>
