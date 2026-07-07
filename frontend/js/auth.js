@@ -3,9 +3,14 @@
    Handles JWT authentication, login, registration, and route protection.
    ============================================================= */
 
-const SERVER_URL = window.location.protocol === 'file:'
+// Update this to your deployed Render backend URL when you deploy the backend to Render
+const PRODUCTION_BACKEND_URL = 'https://personal-diary-backend.onrender.com';
+
+const SERVER_URL = window.location.hostname === 'localhost' || 
+                   window.location.hostname === '127.0.0.1' || 
+                   window.location.protocol === 'file:'
     ? 'http://localhost:5000'
-    : window.location.origin;
+    : PRODUCTION_BACKEND_URL;
 
 const API_BASE_URL = `${SERVER_URL}/api`;
 
